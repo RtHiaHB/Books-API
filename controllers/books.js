@@ -4,10 +4,10 @@ const db = require('../models/index')
 router.get('/', (req, res) => {
     db.Book.find()
         .then((books) => {
-            res.send(books)
+            res.status(200).json(books)
         })
         .catch((err) => {
-            console.log("Error while trying to retrieve books", err)
+            res.status(400).json(err)
         })
 })
 
@@ -15,38 +15,46 @@ router.get('/:id', (req, res) => {
     const { id } = req.params
     db.Book.findById(id)
         .then((book) => {
-            res.send(book)
+            res.status(200).json(book)
         })
         .catch((err) => {
-            console.log("Error while trying to find this book.", err)
+            res.status(400).json(err)
         })
 })
 
-router.post('/', async (req, res) => {
-    await db.Book.create(req.body)
+router.post('/', (req, res) => {
+    db.Book.create(req.body)
+        .then((book) => {
+            res.status(200).json(book)
+        })
         .catch(err => {
-            console.log("Error while trying to save this book", err)
+            res.status(400).json(err)
         })
-    res.status(200).send('done')
 })
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', (req, res) => {
     const { id } = req.params
-    await db.Book.findByIdAndUpdate(id, req.body)
-        .catch(err => {
-            console.log('PUT error!', err)
-            res.status(400).send(err)
+    db.Book.findByIdAndUpdate(id, req.body, {new: true})
+        .then((book) => {
+            res.status(200).json(book)
         })
-    res.status(200).send('Successfully updated')
+        .catch(err => {
+            res.status(400).json(err)
+        })
 })
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', (req, res) => {
     const { id } = req.params
-    await db.Book.findByIdAndDelete(id)
-        .catch(err => {
-            res.status(400).send(err)
+    db.Book.findByIdAndDelete(id)
+        .then(() => {
+            let goodMessage = {
+                'message': 'Successfully deleted'
+            }
+            res.status(200).json(goodMessage)
         })
-    res.status(200).send('done')
+        .catch(err => {
+            res.status(400).json(err)
+        })
 })
 
 module.exports = router
